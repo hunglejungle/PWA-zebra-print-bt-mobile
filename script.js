@@ -27,8 +27,8 @@ document.getElementById('print').addEventListener('click', async () => {
     }
 
     try {
-        const service = await window.printerServer.getPrimaryService('printer_service_uuid'); // Replace with the correct service UUID
-        const characteristic = await service.getCharacteristic('printer_characteristic_uuid'); // Replace with the correct characteristic UUID
+        const service = await window.printerServer.getPrimaryService('[)>_1E05_1D8004663056$$1_1E_04'); // Replace with the correct service UUID
+        const characteristic = await service.getCharacteristic('ZQ62-AUWB000-00'); // Replace with the correct characteristic UUID
 
         // Generate ZPL command
         const zpl = '^XA^FO50,50^A0N,50,50^FD123456789^FS^FO50,150^BY2^BCN,100,Y,N,N^FD123456789^FS^XZ';
