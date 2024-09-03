@@ -4,7 +4,7 @@ document.getElementById('connect').addEventListener('click', async () => {
     try {
         console.log("Requesting Bluetooth Device...");
         printerDevice = await navigator.bluetooth.requestDevice({
-            filters: [{ services: ['[)>_1E05_1D8004663056$$1_1E_04'] }] // Replace 'printer_service_uuid' with the correct UUID for your Zebra printer
+         //   filters: [{ services: ['[)>_1E05_1D8004663056$$1_1E_04'] }] // Replace 'printer_service_uuid' with the correct UUID for your Zebra printer
         });
 
         const server = await printerDevice.gatt.connect();
