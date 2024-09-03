@@ -1,42 +1,78 @@
 let printerDevice;
+let printerServer;
 
 document.getElementById('connect').addEventListener('click', async () => {
     try {
         console.log("Requesting Bluetooth Device...");
         printerDevice = await navigator.bluetooth.requestDevice({
-         //   filters: [{ services: ['[)>_1E05_1D8004663056$$1_1E_04'] }] // Replace 'printer_service_uuid' with the correct UUID for your Zebra printer
+            acceptAllDevices: true,  // This will show all available Bluetooth devices
+            optionalServices: []     // Empty array to allow discovering all services
         });
 
-        const server = await printerDevice.gatt.connect();
+        printerServer = await printerDevice.gatt.connect();
         console.log("Connected to GATT Server");
 
-        // Save the connection details for later use
-        window.printerServer = server;
-
-        alert('Connected to Zebra Printer!');
+        alert('Connected to Zebra Printer! Now discovering services...');
+        discoverServicesAndCharacteristics(printerServer);
     } catch (error) {
         console.error('Error connecting to Bluetooth device:', error);
         alert(`Failed to connect to the printer. Error: ${error.message}`);
     }
 });
 
+async function discoverServicesAndCharacteristics(server) {
+    try {
+        const services = await server.getPrimaryServices();
+        
+        for (const service of services) {
+            console.log(`Service: ${service.uuid}`);
+            
+            const characteristics = await service.getCharacteristics();
+            
+            for (const characteristic of characteristics) {
+                console.log(`Characteristic: ${characteristic.uuid}`);
+                // You can now interact with the characteristic if it's writable
+                // Example: Write data to a characteristic
+                // if (characteristic.properties.write) {
+                //     await characteristic.writeValue(new TextEncoder().encode('Hello World'));
+                // }
+            }
+        }
+
+        alert('Services and characteristics discovered. Check console for details.');
+    } catch (error) {
+        console.error('Error discovering services and characteristics:', error);
+        alert('Failed to discover services and characteristics.');
+    }
+}
+
 document.getElementById('print').addEventListener('click', async () => {
-    if (!printerDevice) {
+    if (!printerServer) {
         alert('Please connect to the printer first.');
         return;
     }
 
     try {
-        const service = await window.printerServer.getPrimaryService('[)>_1E05_1D8004663056$$1_1E_04'); // Replace with the correct service UUID
-        const characteristic = await service.getCharacteristic('ZQ62-AUWB000-00'); // Replace with the correct characteristic UUID
+        const services = await printerServer.getPrimaryServices();
+        
+        // Iterate through services and characteristics to find the right one
+        for (const service of services) {
+            const characteristics = await service.getCharacteristics();
+            for (const characteristic of characteristics) {
+                if (characteristic.properties.write) {
+                    // Generate ZPL command
+                    const zpl = '^XA^FO50,50^A0N,50,50^FD123456789^FS^FO50,150^BY2^BCN,100,Y,N,N^FD123456789^FS^XZ';
+                    const encoder = new TextEncoder();
+                    const zplData = encoder.encode(zpl);
 
-        // Generate ZPL command
-        const zpl = '^XA^FO50,50^A0N,50,50^FD123456789^FS^FO50,150^BY2^BCN,100,Y,N,N^FD123456789^FS^XZ';
-        const encoder = new TextEncoder();
-        const zplData = encoder.encode(zpl);
+                    await characteristic.writeValue(zplData);
+                    alert('Label sent to printer!');
+                    return;  // Exit after sending data
+                }
+            }
+        }
 
-        await characteristic.writeValue(zplData);
-        alert('Label sent to printer!');
+        alert('No writable characteristic found.');
     } catch (error) {
         console.error('Error printing label:', error);
         alert('Failed to print label. Please check the console for details.');
