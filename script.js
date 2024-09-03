@@ -4,7 +4,7 @@ document.getElementById('connect').addEventListener('click', async () => {
     try {
         console.log("Requesting Bluetooth Device...");
         printerDevice = await navigator.bluetooth.requestDevice({
-            filters: [{ services: ['printer_service'] }] // Replace 'printer_service' with the correct UUID for your Zebra printer
+            filters: [{ services: ['printer_service_uuid'] }] // Replace 'printer_service_uuid' with the correct UUID for your Zebra printer
         });
 
         const server = await printerDevice.gatt.connect();
@@ -16,7 +16,7 @@ document.getElementById('connect').addEventListener('click', async () => {
         alert('Connected to Zebra Printer!');
     } catch (error) {
         console.error('Error connecting to Bluetooth device:', error);
-        alert('Failed to connect to Zebra Printer.');
+        alert(`Failed to connect to the printer. Error: ${error.message}`);
     }
 });
 
@@ -27,8 +27,8 @@ document.getElementById('print').addEventListener('click', async () => {
     }
 
     try {
-        const service = await window.printerServer.getPrimaryService('printer_service'); // Replace with the correct service UUID
-        const characteristic = await service.getCharacteristic('printer_characteristic'); // Replace with the correct characteristic UUID
+        const service = await window.printerServer.getPrimaryService('printer_service_uuid'); // Replace with the correct service UUID
+        const characteristic = await service.getCharacteristic('printer_characteristic_uuid'); // Replace with the correct characteristic UUID
 
         // Generate ZPL command
         const zpl = '^XA^FO50,50^A0N,50,50^FD123456789^FS^FO50,150^BY2^BCN,100,Y,N,N^FD123456789^FS^XZ';
@@ -39,6 +39,6 @@ document.getElementById('print').addEventListener('click', async () => {
         alert('Label sent to printer!');
     } catch (error) {
         console.error('Error printing label:', error);
-        alert('Failed to print label.');
+        alert('Failed to print label. Please check the console for details.');
     }
 });
